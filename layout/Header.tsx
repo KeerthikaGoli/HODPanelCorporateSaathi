@@ -1,29 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { SearchIcon, BellIcon, MailIcon, MenuIcon, ChevronDownIcon, UserCircleIcon, SettingsIcon, LogoutIcon, SunIcon, MoonIcon } from '../icons/Icons';
+import { SearchIcon, BellIcon, MenuIcon, ChevronDownIcon, UserCircleIcon, SettingsIcon, LogoutIcon, SunIcon, MoonIcon } from '../icons/Icons';
 import { ViewType, Theme } from '../App';
-import { Notification } from '../types';
-import { mockNotifications } from '../notifications/data';
-import { mockEmails } from '../email/data';
-import NotificationsPanel from './NotificationsPanel';
 
 const viewTitles: Record<ViewType, string> = {
-  dashboard: 'Dashboard',
-  tasks: 'Tasks',
-  services: 'Services',
-  employees: 'Employees',
-  departments: 'Departments',
-  leave: 'Leave',
-  attendance: 'Attendance',
-  performance: 'Performance',
-  notifications: 'Announcements',
-  email: 'Email',
-  leaderboard: 'Leaderboard',
-  payroll: 'Payroll',
-  reports: 'Reports',
-  audit: 'Audit Logs',
-  settings: 'Settings',
-  profile: 'Profile',
+  dashboard: 'HOD Dashboard',
 };
 
 interface HeaderProps {
@@ -37,24 +18,15 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onMenuClick, searchQuery, setSearchQuery, theme, setTheme }) => {
-  const pageTitle = viewTitles[currentView] || 'Dashboard';
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const pageTitle = viewTitles[currentView] || 'HOD Dashboard';
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   
-  const notificationRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const themeRef = useRef<HTMLDivElement>(null);
 
-  const unreadNotifications = notifications.filter(n => !n.read).length;
-  const unreadEmails = mockEmails.filter(e => e.to.email === 'admin@corporatesaathi.com' && !e.read).length;
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setIsNotificationsOpen(false);
-      }
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileMenuOpen(false);
       }
@@ -117,37 +89,15 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onMenuClic
           )}
         </div>
 
-        <div className="relative" ref={notificationRef}>
-          <button 
-            onClick={() => setIsNotificationsOpen(prev => !prev)}
-            className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition relative"
-          >
+        <div className="relative">
+          <button className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition relative">
             <span className="sr-only">View notifications</span>
             <BellIcon />
-            {unreadNotifications > 0 && (
-              <span className="absolute top-0 right-0 block h-5 w-5 rounded-full ring-2 ring-white bg-red-500 text-white text-xs flex items-center justify-center">
-                {unreadNotifications}
-              </span>
-            )}
+            <span className="absolute top-0 right-0 block h-5 w-5 rounded-full ring-2 ring-white bg-red-500 text-white text-xs flex items-center justify-center">
+              3
+            </span>
           </button>
-          {isNotificationsOpen && (
-             <NotificationsPanel 
-                notifications={notifications}
-                setNotifications={setNotifications}
-                onClose={() => setIsNotificationsOpen(false)}
-             />
-          )}
         </div>
-        
-        <button onClick={() => setCurrentView('email')} className="relative p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
-          <span className="sr-only">View messages</span>
-          <MailIcon />
-           {unreadEmails > 0 && (
-              <span className="absolute top-0 right-0 block h-5 w-5 rounded-full ring-2 ring-white bg-red-500 text-white text-xs flex items-center justify-center">
-                {unreadEmails}
-              </span>
-            )}
-        </button>
         
         <div className="relative" ref={profileRef}>
           <button onClick={() => setIsProfileMenuOpen(prev => !prev)} className="flex items-center space-x-2 focus:outline-none p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -157,8 +107,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onMenuClic
               alt="User avatar"
             />
             <div className="hidden lg:block text-left">
-              <div className="font-semibold text-sm text-text-primary dark:text-gray-200">Admin User</div>
-              <div className="text-xs text-text-secondary dark:text-gray-400">System Administrator</div>
+              <div className="font-semibold text-sm text-text-primary dark:text-gray-200">HOD User</div>
+              <div className="text-xs text-text-secondary dark:text-gray-400">Head of Department</div>
             </div>
             <ChevronDownIcon className="hidden lg:block w-4 h-4 text-gray-500" />
           </button>
@@ -166,14 +116,14 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onMenuClic
            {isProfileMenuOpen && (
               <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border dark:border-gray-700 z-50 animate-fade-in-down py-2">
                   <div className="px-4 py-2 border-b dark:border-gray-700">
-                     <p className="font-semibold text-sm text-text-primary dark:text-gray-200">Admin User</p>
-                     <p className="text-xs text-text-secondary dark:text-gray-400 truncate">admin@corporatesaathi.com</p>
+                     <p className="font-semibold text-sm text-text-primary dark:text-gray-200">HOD User</p>
+                     <p className="text-xs text-text-secondary dark:text-gray-400 truncate">hod@corporatesaathi.com</p>
                   </div>
                   <div className="mt-2 space-y-1">
-                     <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('settings'); setIsProfileMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                     <a href="#" onClick={(e) => { e.preventDefault(); setIsProfileMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                        <UserCircleIcon className="w-5 h-5 text-gray-500" /> My Profile
                      </a>
-                     <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('settings'); setIsProfileMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                     <a href="#" onClick={(e) => { e.preventDefault(); setIsProfileMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                        <SettingsIcon className="w-5 h-5 text-gray-500" /> Settings
                      </a>
                   </div>

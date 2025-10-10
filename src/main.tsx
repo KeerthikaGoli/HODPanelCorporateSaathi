@@ -2,17 +2,8 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import './styles.css';
 import MainLayout from '../layout/MainLayout';
-import EmployeeDashboard from '../pages/dashboard';
-import TasksApp from '../pages/tasks';
-import ServicesApp from '../pages/services';
-import LeaderboardApp from '../pages/leaderboard';
+import HODDashboard from '../pages/dashboard';
 import { ViewType, Theme } from '../App';
-import { EmployeeLeaveManagement } from '../leave'; 
-import ProfileView from '../profile/ProfileView';
-import AttendanceView  from '../attendance/AttendanceView';
-import SettingsView  from '../settings/SettingsView';
-import EmailView  from '../email/EmailView';
-import AnnouncementsView  from '../announcements/AnnouncementsView';
 
 const AppRoot: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -33,19 +24,7 @@ const AppRoot: React.FC = () => {
       theme={theme}
       setTheme={setTheme}
     >
-      {currentView === 'dashboard' && <EmployeeDashboard />}
-      {currentView === 'leave' && <EmployeeLeaveManagement />}
-      {currentView === 'profile' && <ProfileView />}
-      {currentView === 'tasks' && <TasksApp />}
-      {currentView === 'services' && <ServicesApp />}
-      {currentView === 'leaderboard' && <LeaderboardApp />}
-      {currentView === 'attendance' && <AttendanceView />}
-      {currentView === 'settings' && <SettingsView />}
-      {currentView === 'email' && <EmailView />}
-      {currentView === 'announcements' && <AnnouncementsView />}
-      {currentView === 'dashboard' && (
-        <div className="text-gray-700 dark:text-gray-200">{currentView}</div>
-      )}
+      <HODDashboard />
     </MainLayout>
   );
 };

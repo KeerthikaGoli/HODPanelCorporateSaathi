@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ViewType } from '../App';
-import { DashboardIcon, ProjectIcon, LeaveIcon, AttendanceIcon, LeaderboardIcon, SettingsIcon, XIcon, UserCircleIcon, ServicesIcon, EmailIcon, NotificationIcon } from '../icons/Icons';
+import { DashboardIcon, XIcon } from '../icons/Icons';
 
 interface SidebarProps {
   currentView: ViewType;
@@ -12,18 +12,8 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, setIsOpen }) => {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
-    { id: 'tasks', label: 'Tasks', icon: <ProjectIcon /> },
-    { id: 'services', label: 'Services', icon: <ServicesIcon /> },
-    { id: 'attendance', label: 'Attendance', icon: <AttendanceIcon /> },
-    { id: 'leave', label: 'Leave', icon: <LeaveIcon /> },
-    { id: 'profile', label: 'Profile', icon: <UserCircleIcon /> },
-    { id: 'leaderboard', label: 'Leaderboard', icon: <LeaderboardIcon /> },
-    { id: 'email', label: 'Email', icon: <EmailIcon /> },
-    { id: 'announcements', label: 'Announcements', icon: <NotificationIcon /> },
+    { id: 'dashboard', label: 'HOD Dashboard', icon: <DashboardIcon /> },
   ];
-  
-  const additionalModules: { id: ViewType, label: string, icon: React.ReactElement }[] = [];
 
   const NavLink = ({ id, label, icon }: { id: ViewType, label: string, icon: React.ReactElement }) => (
     <li>
@@ -65,25 +55,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
           </button>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Core</p>
+          <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">HOD Panel</p>
           <ul className="space-y-2">
             {menuItems.map(item => <NavLink key={item.id} id={item.id as ViewType} label={item.label} icon={item.icon} />)}
           </ul>
-          {additionalModules.length > 0 && (
-            <>
-              <p className="px-3 pt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Modules</p>
-              <ul className="space-y-2">
-                {additionalModules.map(item => <NavLink key={item.id} id={item.id as ViewType} label={item.label} icon={item.icon} />)}
-              </ul>
-            </>
-          )}
         </nav>
-        <div className="p-4 border-t border-gray-700">
-          <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('settings'); setIsOpen(false); }} className={`flex items-center p-3 rounded-lg text-gray-300 hover:bg-sidebar-hover hover:text-white transition-colors duration-200 ${currentView === 'settings' ? 'bg-primary text-white' : ''}`}>
-            <SettingsIcon />
-            <span className="ml-3 text-sm font-medium">Settings</span>
-          </a>
-        </div>
       </aside>
     </>
   );
