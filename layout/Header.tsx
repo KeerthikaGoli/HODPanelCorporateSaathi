@@ -2,9 +2,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SearchIcon, BellIcon, MenuIcon, ChevronDownIcon, UserCircleIcon, SettingsIcon, LogoutIcon, SunIcon, MoonIcon } from '../icons/Icons';
 import { ViewType, Theme } from '../App';
+import NotificationBadge from '../components/NotificationBadge';
+import NotificationsPanel from '../components/NotificationsPanel';
+import { NotificationService } from '../services/notificationService';
+import { Notification } from '../types/notification';
 
 const viewTitles: Record<ViewType, string> = {
   dashboard: 'HOD Dashboard',
+  taskManagement: 'Task Management',
+  notifications: 'Notifications Center',
+  announcements: 'Announcements'
 };
 
 interface HeaderProps {
@@ -21,17 +28,29 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onMenuClic
   const pageTitle = viewTitles[currentView] || 'HOD Dashboard';
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   
   const profileRef = useRef<HTMLDivElement>(null);
   const themeRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Initialize notifications
+    NotificationService.initializeMockNotifications();
+    setNotifications(NotificationService.getNotifications());
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileMenuOpen(false);
       }
-       if (themeRef.current && !themeRef.current.contains(event.target as Node)) {
+      if (themeRef.current && !themeRef.current.contains(event.target as Node)) {
         setIsThemeMenuOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -89,14 +108,22 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onMenuClic
           )}
         </div>
 
-        <div className="relative">
-          <button className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition relative">
+        <div className="relative" ref={notificationsRef}>
+          <button 
+            onClick={() => setIsNotificationsOpen(prev => !prev)}
+            className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition relative"
+          >
             <span className="sr-only">View notifications</span>
             <BellIcon />
-            <span className="absolute top-0 right-0 block h-5 w-5 rounded-full ring-2 ring-white bg-red-500 text-white text-xs flex items-center justify-center">
-              3
-            </span>
+            <NotificationBadge className="absolute -top-1 -right-1" />
           </button>
+          {isNotificationsOpen && (
+            <NotificationsPanel
+              notifications={notifications}
+              setNotifications={setNotifications}
+              onClose={() => setIsNotificationsOpen(false)}
+            />
+          )}
         </div>
         
         <div className="relative" ref={profileRef}>

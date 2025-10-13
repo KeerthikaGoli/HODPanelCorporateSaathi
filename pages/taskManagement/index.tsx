@@ -15,7 +15,8 @@ import {
   CheckCircleIcon,
   UsersIcon,
   FlagIcon,
-  RefreshIcon
+  RefreshIcon,
+  XIcon
 } from '../../icons/Icons';
 
 // Types
@@ -184,7 +185,7 @@ const mockTasks: Task[] = [
     id: 8,
     title: 'Bug fixes - Login module',
     description: 'Fix authentication issues and improve error handling in login system',
-    status: 'urgent',
+    status: 'in-progress',
     priority: 'urgent',
     assignedTo: 'Sarah Johnson',
     assignedToId: 1,
@@ -432,7 +433,7 @@ const TaskManagement: React.FC = () => {
             <p className="text-blue-100 dark:text-blue-200">Manage department tasks, track progress, and monitor deadlines</p>
           </div>
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => setShowCreateWidget(true)}
             className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <PlusIcon />
@@ -824,31 +825,25 @@ const TaskManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Debug Info */}
-      <div className="fixed top-4 right-4 bg-red-500 text-white p-2 rounded z-[9999]">
-        showCreateWidget: {showCreateWidget.toString()}
-      </div>
-
       {/* Create Task Widget */}
       {showCreateWidget && (
-        <div className="fixed inset-0 bg-red-500 z-[9999]">
-          <div className="fixed right-0 top-0 h-full w-96 bg-yellow-400 shadow-2xl">
-            <div className="h-full flex flex-col">
-              {/* Header */}
-              <div className="p-6 border-b border-gray-200 dark:border-gray-600 bg-green-500">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-black">Create New Task - WIDGET IS WORKING!</h2>
-                  <button
-                    onClick={() => setShowCreateWidget(false)}
-                    className="p-2 text-black hover:text-gray-600 transition-colors"
-                  >
-                    <XIcon className="w-5 h-5" />
-                  </button>
-                </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create New Task</h2>
+                <button
+                  onClick={() => setShowCreateWidget(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
               </div>
+            </div>
 
-              {/* Form Content */}
-              <div className="flex-1 overflow-y-auto p-6">
+            {/* Form Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
                 <div className="space-y-4">
                   {/* Task Title */}
                   <div>
@@ -1013,23 +1008,22 @@ const TaskManagement: React.FC = () => {
                 </div>
               </div>
 
-              {/* Footer Actions */}
-              <div className="p-6 border-t border-gray-200 dark:border-gray-600">
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowCreateWidget(false)}
-                    className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleCreateTask}
-                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
-                  >
-                    <PlusIcon className="w-4 h-4" />
-                    Create Task
-                  </button>
-                </div>
+            {/* Footer Actions - Fixed at bottom */}
+            <div className="p-6 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 flex-shrink-0">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCreateWidget(false)}
+                  className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateTask}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  Create Task
+                </button>
               </div>
             </div>
           </div>

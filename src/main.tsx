@@ -4,6 +4,8 @@ import './styles.css';
 import MainLayout from '../layout/MainLayout';
 import HODDashboard from '../pages/dashboard';
 import TaskManagement from '../pages/taskManagement';
+import NotificationsPage from '../pages/notifications';
+import AnnouncementsPage from '../pages/announcements';
 import { ViewType, Theme } from '../App';
 
 const AppRoot: React.FC = () => {
@@ -22,6 +24,10 @@ const AppRoot: React.FC = () => {
         return <HODDashboard />;
       case 'taskManagement':
         return <TaskManagement />;
+      case 'notifications':
+        return <NotificationsPage />;
+      case 'announcements':
+        return <AnnouncementsPage />;
       default:
         return <HODDashboard />;
     }

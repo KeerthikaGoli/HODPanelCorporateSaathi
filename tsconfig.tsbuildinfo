@@ -1,1 +1,1 @@
-{"root":["./src/main.tsx","./layout/header.tsx","./layout/mainlayout.tsx","./layout/sidebar.tsx","./icons/icons.tsx","./pages/dashboard/index.tsx"],"version":"5.9.3"}
+{"root":["./src/main.tsx","./layout/header.tsx","./layout/mainlayout.tsx","./layout/sidebar.tsx","./icons/icons.tsx","./pages/announcements/index.tsx","./pages/dashboard/index.tsx","./pages/notifications/index.tsx","./pages/projecttaskmanagement/index.tsx","./pages/taskmanagement/index.tsx"],"version":"5.9.3"}
