@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './styles.css';
 import MainLayout from '../layout/MainLayout';
 import HODDashboard from '../pages/dashboard';
+import TaskManagement from '../pages/taskManagement';
 import { ViewType, Theme } from '../App';
 
 const AppRoot: React.FC = () => {
@@ -15,6 +16,17 @@ const AppRoot: React.FC = () => {
     if (theme === 'dark') root.classList.add('dark'); else root.classList.remove('dark');
   }, [theme]);
 
+  const renderContent = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <HODDashboard />;
+      case 'taskManagement':
+        return <TaskManagement />;
+      default:
+        return <HODDashboard />;
+    }
+  };
+
   return (
     <MainLayout
       currentView={currentView}
@@ -24,7 +36,7 @@ const AppRoot: React.FC = () => {
       theme={theme}
       setTheme={setTheme}
     >
-      <HODDashboard />
+      {renderContent()}
     </MainLayout>
   );
 };

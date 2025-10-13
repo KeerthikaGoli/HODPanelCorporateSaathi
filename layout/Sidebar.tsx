@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ViewType } from '../App';
-import { DashboardIcon, XIcon } from '../icons/Icons';
+import { DashboardIcon, XIcon, TaskIcon } from '../icons/Icons';
 
 interface SidebarProps {
   currentView: ViewType;
@@ -13,6 +13,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, setIsOpen }) => {
   const menuItems = [
     { id: 'dashboard', label: 'HOD Dashboard', icon: <DashboardIcon /> },
+    { id: 'taskManagement', label: 'Task Management', icon: <TaskIcon /> },
   ];
 
   const NavLink = ({ id, label, icon }: { id: ViewType, label: string, icon: React.ReactElement }) => (

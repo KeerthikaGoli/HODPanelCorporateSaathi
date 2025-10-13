@@ -1,4 +1,4 @@
-export type ViewType = 'dashboard';
+export type ViewType = 'dashboard' | 'taskManagement';
 
 export type Theme = 'light' | 'dark' | 'system';
 
