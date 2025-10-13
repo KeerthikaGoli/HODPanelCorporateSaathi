@@ -234,7 +234,20 @@ const TaskManagement: React.FC = () => {
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [assignedToFilter, setAssignedToFilter] = useState<string>('all');
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateWidget, setShowCreateWidget] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    category: 'Development',
+    priority: 'medium',
+    assignedTo: '',
+    assignedToId: 0,
+    deadline: '',
+    estimatedHours: 8,
+    tags: [] as string[],
+    dependencies: [] as number[]
+  });
+  const [newTag, setNewTag] = useState('');
   const [sortBy, setSortBy] = useState<string>('deadline');
 
   // Filter tasks
@@ -336,6 +349,69 @@ const TaskManagement: React.FC = () => {
         task.id === taskId ? { ...task, status: newStatus } : task
       )
     );
+  };
+
+  // Create new task handler
+  const handleCreateTask = () => {
+    if (!newTask.title.trim() || !newTask.assignedTo || !newTask.deadline) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const task: Task = {
+      id: Math.max(...tasks.map(t => t.id)) + 1,
+      title: newTask.title,
+      description: newTask.description,
+      status: 'new',
+      priority: newTask.priority as 'low' | 'medium' | 'high' | 'urgent',
+      assignedTo: newTask.assignedTo,
+      assignedToId: newTask.assignedToId,
+      createdDate: new Date().toISOString().split('T')[0],
+      deadline: newTask.deadline,
+      progress: 0,
+      category: newTask.category,
+      estimatedHours: newTask.estimatedHours,
+      actualHours: 0,
+      dependencies: newTask.dependencies,
+      tags: newTask.tags
+    };
+
+    setTasks(prevTasks => [...prevTasks, task]);
+    
+    // Reset form
+    setNewTask({
+      title: '',
+      description: '',
+      category: 'Development',
+      priority: 'medium',
+      assignedTo: '',
+      assignedToId: 0,
+      deadline: '',
+      estimatedHours: 8,
+      tags: [],
+      dependencies: []
+    });
+    setNewTag('');
+    setShowCreateWidget(false);
+  };
+
+  // Add tag handler
+  const handleAddTag = () => {
+    if (newTag.trim() && !newTask.tags.includes(newTag.trim())) {
+      setNewTask(prev => ({
+        ...prev,
+        tags: [...prev.tags, newTag.trim()]
+      }));
+      setNewTag('');
+    }
+  };
+
+  // Remove tag handler
+  const handleRemoveTag = (tagToRemove: string) => {
+    setNewTask(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
   };
 
   // Calculate statistics
@@ -729,11 +805,14 @@ const TaskManagement: React.FC = () => {
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Quick Actions</h3>
               <div className="space-y-2">
                 <button
-                  onClick={() => setShowCreateModal(true)}
+                  onClick={() => {
+                    console.log('Button clicked, setting showCreateWidget to true');
+                    setShowCreateWidget(true);
+                  }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  Create New Task
+                  Create New Task (TEST)
                 </button>
                 <button className="w-full flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
                   <RefreshIcon className="w-4 h-4" />
@@ -744,6 +823,218 @@ const TaskManagement: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Debug Info */}
+      <div className="fixed top-4 right-4 bg-red-500 text-white p-2 rounded z-[9999]">
+        showCreateWidget: {showCreateWidget.toString()}
+      </div>
+
+      {/* Create Task Widget */}
+      {showCreateWidget && (
+        <div className="fixed inset-0 bg-red-500 z-[9999]">
+          <div className="fixed right-0 top-0 h-full w-96 bg-yellow-400 shadow-2xl">
+            <div className="h-full flex flex-col">
+              {/* Header */}
+              <div className="p-6 border-b border-gray-200 dark:border-gray-600 bg-green-500">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-black">Create New Task - WIDGET IS WORKING!</h2>
+                  <button
+                    onClick={() => setShowCreateWidget(false)}
+                    className="p-2 text-black hover:text-gray-600 transition-colors"
+                  >
+                    <XIcon className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-4">
+                  {/* Task Title */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Task Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={newTask.title}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Enter task title..."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  {/* Task Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={newTask.description}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Enter task description..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                    />
+                  </div>
+
+                  {/* Category */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Category
+                    </label>
+                    <select
+                      value={newTask.category}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="Development">Development</option>
+                      <option value="Design">Design</option>
+                      <option value="Testing">Testing</option>
+                      <option value="DevOps">DevOps</option>
+                      <option value="Documentation">Documentation</option>
+                      <option value="Bug Fix">Bug Fix</option>
+                      <option value="Database">Database</option>
+                    </select>
+                  </div>
+
+                  {/* Priority */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Priority
+                    </label>
+                    <select
+                      value={newTask.priority}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="urgent">Urgent</option>
+                    </select>
+                  </div>
+
+                  {/* Assignee */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Assignee *
+                    </label>
+                    <select
+                      value={newTask.assignedTo}
+                      onChange={(e) => {
+                        const selectedEmp = employees.find(emp => emp.name === e.target.value);
+                        setNewTask(prev => ({ 
+                          ...prev, 
+                          assignedTo: e.target.value,
+                          assignedToId: selectedEmp?.id || 0
+                        }));
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="">Select assignee...</option>
+                      {employees.map(emp => (
+                        <option key={emp.id} value={emp.name}>
+                          {emp.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Deadline */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Deadline *
+                    </label>
+                    <input
+                      type="date"
+                      value={newTask.deadline}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, deadline: e.target.value }))}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  {/* Estimated Hours */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Estimated Hours
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={newTask.estimatedHours}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, estimatedHours: parseInt(e.target.value) || 8 }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Tags
+                    </label>
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={newTag}
+                        onChange={(e) => setNewTag(e.target.value)}
+                        placeholder="Add tag..."
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                      />
+                      <button
+                        onClick={handleAddTag}
+                        className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    {newTask.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {newTask.tags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 rounded-full text-xs"
+                          >
+                            {tag}
+                            <button
+                              onClick={() => handleRemoveTag(tag)}
+                              className="text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100"
+                            >
+                              <XIcon className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="p-6 border-t border-gray-200 dark:border-gray-600">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowCreateWidget(false)}
+                    className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateTask}
+                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                  >
+                    <PlusIcon className="w-4 h-4" />
+                    Create Task
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
