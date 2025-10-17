@@ -6,6 +6,10 @@ import HODDashboard from '../pages/dashboard';
 import TaskManagement from '../pages/taskManagement';
 import NotificationsPage from '../pages/notifications';
 import AnnouncementsPage from '../pages/announcements';
+import LeaveAttendancePage from '../pages/leaveAttendance/LeaveAttendancePanel';
+import ReportsPage from '../pages/reports/ReportsAnalyticsPanel';
+import PerformancePage from '../pages/performance/PerformanceManagementPanel';
+import EmployeePage from '../pages/employee/DepartmentEmployeeManagementPanel';
 import { ViewType, Theme } from '../App';
 
 const AppRoot: React.FC = () => {
@@ -28,6 +32,14 @@ const AppRoot: React.FC = () => {
         return <NotificationsPage />;
       case 'announcements':
         return <AnnouncementsPage />;
+      case 'leaveAttendance':
+        return <LeaveAttendancePage />;
+      case 'reports':
+        return <ReportsPage />;
+      case 'performance':
+        return <PerformancePage />;
+      case 'employee':
+        return <EmployeePage />;
       default:
         return <HODDashboard />;
     }

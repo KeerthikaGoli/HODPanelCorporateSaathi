@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ViewType } from '../App';
-import { DashboardIcon, XIcon, TaskIcon, BellIcon, MegaphoneIcon } from '../icons/Icons';
+import { DashboardIcon, XIcon, TaskIcon, BellIcon, MegaphoneIcon, LeaveIcon, ReportIcon, PerformanceIcon, ClientIcon } from '../icons/Icons';
 
 interface SidebarProps {
   currentView: ViewType;
@@ -16,6 +16,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
     { id: 'taskManagement', label: 'Task Management', icon: <TaskIcon /> },
     { id: 'notifications', label: 'Notifications', icon: <BellIcon /> },
     { id: 'announcements', label: 'Announcements', icon: <MegaphoneIcon /> },
+    { id: 'leaveAttendance', label: 'Leave & Attendance', icon: <LeaveIcon /> },
+    { id: 'reports', label: 'Reports', icon: <ReportIcon /> },
+    { id: 'performance', label: 'Performance', icon: <PerformanceIcon /> },
+    { id: 'employee', label: 'Employee Management', icon: <ClientIcon /> },
   ];
 
   const NavLink = ({ id, label, icon }: { id: ViewType, label: string, icon: React.ReactElement }) => (
