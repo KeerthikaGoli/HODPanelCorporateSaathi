@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewType } from '../App';
-import { DashboardIcon, XIcon, TaskIcon, BellIcon, MegaphoneIcon, LeaveIcon, ReportIcon, PerformanceIcon, ClientIcon } from '../icons/Icons';
+import { DashboardIcon, XIcon, TaskIcon, BellIcon, MegaphoneIcon, LeaveIcon, ReportIcon, PerformanceIcon, ClientIcon, ServiceIcon } from '../icons/Icons';
+import { NotificationService } from '../services/notificationService';
+import { Notification } from '../types/notification';
 
 interface SidebarProps {
   currentView: ViewType;
@@ -11,35 +13,79 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, setIsOpen }) => {
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadAnnouncements, setUnreadAnnouncements] = useState(0);
+
+  useEffect(() => {
+    // Initialize notifications
+    NotificationService.initializeMockNotifications();
+    
+    const updateCounts = () => {
+      const notifications = NotificationService.getNotifications();
+      const unread = notifications.filter(n => !n.read).length;
+      setUnreadNotifications(unread);
+      
+      // For announcements, we'll use mock data for now
+      // In a real app, you'd have an announcement service
+      setUnreadAnnouncements(2); // Mock unread announcements count
+    };
+
+    updateCounts();
+
+    // Update counts more frequently for better responsiveness
+    const interval = setInterval(updateCounts, 5000); // Every 5 seconds instead of 30
+
+    return () => clearInterval(interval);
+  }, []);
+
   const menuItems = [
-    { id: 'dashboard', label: 'HOD Dashboard', icon: <DashboardIcon /> },
-    { id: 'taskManagement', label: 'Task Management', icon: <TaskIcon /> },
-    { id: 'notifications', label: 'Notifications', icon: <BellIcon /> },
-    { id: 'announcements', label: 'Announcements', icon: <MegaphoneIcon /> },
-    { id: 'leaveAttendance', label: 'Leave & Attendance', icon: <LeaveIcon /> },
-    { id: 'reports', label: 'Reports', icon: <ReportIcon /> },
-    { id: 'performance', label: 'Performance', icon: <PerformanceIcon /> },
-    { id: 'employee', label: 'Employee Management', icon: <ClientIcon /> },
+    { id: 'dashboard', label: 'HOD Dashboard', icon: <DashboardIcon />, badge: null },
+    { id: 'taskManagement', label: 'Task Management', icon: <TaskIcon />, badge: null },
+    { id: 'serviceManagement', label: 'Service Management', icon: <ServiceIcon />, badge: null },
+    { id: 'notifications', label: 'Notifications', icon: <BellIcon />, badge: unreadNotifications > 0 ? unreadNotifications : null },
+    { id: 'announcements', label: 'Announcements', icon: <MegaphoneIcon />, badge: unreadAnnouncements > 0 ? unreadAnnouncements : null },
+    { id: 'leaveAttendance', label: 'Leave & Attendance', icon: <LeaveIcon />, badge: null },
+    { id: 'reports', label: 'Reports', icon: <ReportIcon />, badge: null },
+    { id: 'performance', label: 'Performance', icon: <PerformanceIcon />, badge: null },
+    { id: 'employee', label: 'Employee Management', icon: <ClientIcon />, badge: null },
   ];
 
-  const NavLink = ({ id, label, icon }: { id: ViewType, label: string, icon: React.ReactElement }) => (
-    <li>
-      <a
-        href="#"
-        onClick={(e) => { 
-          e.preventDefault(); 
-          setCurrentView(id);
-          setIsOpen(false); // Close sidebar on navigation
-        }}
-        className={`flex items-center p-3 rounded-lg text-gray-300 hover:bg-sidebar-hover hover:text-white transition-colors duration-200 ${
-          currentView === id ? 'bg-primary text-white' : ''
-        }`}
-      >
-        {icon}
-        <span className="ml-3 text-sm font-medium">{label}</span>
-      </a>
-    </li>
-  );
+  const NavLink = ({ id, label, icon, badge }: { id: ViewType, label: string, icon: React.ReactElement, badge: number | null }) => {
+    const handleClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      setCurrentView(id);
+      setIsOpen(false); // Close sidebar on navigation
+      
+      // Force update counts when navigating to notifications or announcements
+      if (id === 'notifications' || id === 'announcements') {
+        setTimeout(() => {
+          const notifications = NotificationService.getNotifications();
+          const unread = notifications.filter(n => !n.read).length;
+          setUnreadNotifications(unread);
+        }, 100);
+      }
+    };
+
+    return (
+      <li>
+        <a
+          href="#"
+          onClick={handleClick}
+          className={`flex items-center p-3 rounded-lg text-gray-300 hover:bg-sidebar-hover hover:text-white transition-colors duration-200 ${
+            currentView === id ? 'bg-primary text-white' : ''
+          }`}
+        >
+          {icon}
+          <span className="ml-3 text-sm font-medium flex-1">{label}</span>
+          {badge && (
+            <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] text-center">
+              {badge > 99 ? '99+' : badge}
+            </span>
+          )}
+        </a>
+      </li>
+    );
+  };
 
   return (
     <>
@@ -64,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">HOD Panel</p>
           <ul className="space-y-2">
-            {menuItems.map(item => <NavLink key={item.id} id={item.id as ViewType} label={item.label} icon={item.icon} />)}
+            {menuItems.map(item => <NavLink key={item.id} id={item.id as ViewType} label={item.label} icon={item.icon} badge={item.badge} />)}
           </ul>
         </nav>
       </aside>

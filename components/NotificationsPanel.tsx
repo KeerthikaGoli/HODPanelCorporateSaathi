@@ -18,6 +18,8 @@ interface Props {
   notifications: Notification[];
   setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
   onClose: () => void;
+  onViewAll?: () => void;
+  onNotificationClick?: (notification: Notification) => void;
 }
 
 const NotificationIconMap: Record<NotificationType, React.ReactElement> = {
@@ -33,7 +35,7 @@ const NotificationIconMap: Record<NotificationType, React.ReactElement> = {
   reminder: <ClockIcon className="w-5 h-5 text-cyan-500" />
 };
 
-const NotificationsPanel: React.FC<Props> = ({ notifications, setNotifications, onClose }) => {
+const NotificationsPanel: React.FC<Props> = ({ notifications, setNotifications, onClose, onViewAll, onNotificationClick }) => {
   
   const handleMarkAsRead = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
@@ -43,10 +45,27 @@ const NotificationsPanel: React.FC<Props> = ({ notifications, setNotifications, 
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
+  const handleNotificationClick = (notification: Notification) => {
+    if (!notification.read) {
+      handleMarkAsRead(notification.id);
+    }
+    if (onNotificationClick) {
+      onNotificationClick(notification);
+    }
+  };
+
+  const handleViewAllClick = () => {
+    if (onViewAll) {
+      onViewAll();
+    } else {
+      onClose();
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 animate-fade-in-down">
+    <div className="absolute right-0 mt-2 w-[32rem] sm:w-[36rem] bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 animate-fade-in-down">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
         <div className="flex items-center gap-2">
@@ -71,7 +90,7 @@ const NotificationsPanel: React.FC<Props> = ({ notifications, setNotifications, 
           notifications.slice(0, 10).map(notification => (
             <div 
               key={notification.id}
-              onClick={() => handleMarkAsRead(notification.id)}
+              onClick={() => handleNotificationClick(notification)}
               className={`flex items-start gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
                 !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
               }`}
@@ -112,7 +131,7 @@ const NotificationsPanel: React.FC<Props> = ({ notifications, setNotifications, 
       </div>
       <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-b-xl text-center">
         <button 
-          onClick={onClose} 
+          onClick={handleViewAllClick} 
           className="w-full py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition"
         >
           View All Notifications

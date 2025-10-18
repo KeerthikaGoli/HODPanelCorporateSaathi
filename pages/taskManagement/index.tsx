@@ -235,6 +235,7 @@ const TaskManagement: React.FC = () => {
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [assignedToFilter, setAssignedToFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('deadline');
   const [showCreateWidget, setShowCreateWidget] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -249,7 +250,10 @@ const TaskManagement: React.FC = () => {
     dependencies: [] as number[]
   });
   const [newTag, setNewTag] = useState('');
-  const [sortBy, setSortBy] = useState<string>('deadline');
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [taskToAssign, setTaskToAssign] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Filter tasks
   const filteredTasks = tasks.filter(task => {
@@ -332,6 +336,8 @@ const TaskManagement: React.FC = () => {
         task.id === taskId ? { ...task, assignedTo: newAssignee, assignedToId: newAssigneeId } : task
       )
     );
+    setShowAssignmentModal(false);
+    setTaskToAssign(null);
   };
 
   // Task escalation handler
@@ -415,6 +421,24 @@ const TaskManagement: React.FC = () => {
     }));
   };
 
+  // Edit task handler
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setShowEditModal(true);
+  };
+
+  // Update task handler
+  const handleUpdateTask = (updatedTask: Task) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === updatedTask.id ? updatedTask : task
+      )
+    );
+    setShowEditModal(false);
+    setEditingTask(null);
+  };
+
+
   // Calculate statistics
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.status === 'completed').length;
@@ -424,27 +448,28 @@ const TaskManagement: React.FC = () => {
   const urgentTasks = tasks.filter(t => t.priority === 'urgent').length;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-800 dark:to-purple-800 rounded-2xl p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Task Management 📋</h1>
-            <p className="text-blue-100 dark:text-blue-200">Manage department tasks, track progress, and monitor deadlines</p>
+    <>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-800 dark:to-purple-800 rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Task Management 📋</h1>
+              <p className="text-blue-100 dark:text-blue-200">Manage department tasks, track progress, and monitor deadlines</p>
+            </div>
+            <button
+              onClick={() => setShowCreateWidget(true)}
+              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <PlusIcon />
+              Create Task
+            </button>
           </div>
-          <button
-            onClick={() => setShowCreateWidget(true)}
-            className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-          >
-            <PlusIcon />
-            Create Task
-          </button>
         </div>
-      </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Tasks</p>
@@ -500,175 +525,143 @@ const TaskManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* Left Sidebar - Search & Filters */}
-        <div className="xl:col-span-3">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sticky top-6">
-            <div className="flex items-center gap-2 mb-6">
-              <SearchIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Search & Filters</h2>
+      {/* Horizontal Filter Bar */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <FilterIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          {/* Search Input */}
+          <div className="flex-1 min-w-64">
+            <div className="relative">
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
             </div>
-            
-            <div className="space-y-6">
-              {/* Search Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Search Tasks
-                </label>
-                <div className="relative">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Search by title, assignee, tags..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Status
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="all">All Status</option>
-                  <option value="new">New</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-
-              {/* Priority Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Priority
-                </label>
-                <select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="all">All Priority</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </div>
-
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Category
-                </label>
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="all">All Categories</option>
-                  <option value="Development">Development</option>
-                  <option value="Design">Design</option>
-                  <option value="Testing">Testing</option>
-                  <option value="DevOps">DevOps</option>
-                  <option value="Documentation">Documentation</option>
-                  <option value="Bug Fix">Bug Fix</option>
-                  <option value="Database">Database</option>
-                </select>
-              </div>
-
-              {/* Assignee Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Assignee
-                </label>
-                <select
-                  value={assignedToFilter}
-                  onChange={(e) => setAssignedToFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="all">All Assignees</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.name}>{emp.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Sort By */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Sort By
-                </label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="deadline">Deadline</option>
-                  <option value="priority">Priority</option>
-                  <option value="progress">Progress</option>
-                  <option value="assignedTo">Assignee</option>
-                </select>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Quick Stats</h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Total:</span>
-                    <span className="text-gray-900 dark:text-white font-medium">{filteredTasks.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Completed:</span>
-                    <span className="text-green-600 dark:text-green-400 font-medium">{filteredTasks.filter(t => t.status === 'completed').length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">In Progress:</span>
-                    <span className="text-blue-600 dark:text-blue-400 font-medium">{filteredTasks.filter(t => t.status === 'in-progress').length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Overdue:</span>
-                    <span className="text-red-600 dark:text-red-400 font-medium">{filteredTasks.filter(t => new Date(t.deadline) < new Date() && t.status !== 'completed').length}</span>
-                  </div>
-                </div>
-              </div>
+          </div>
+          {/* Status Filter */}
+          <div className="min-w-32">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="all">All Status</option>
+              <option value="new">New</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          {/* Priority Filter */}
+          <div className="min-w-32">
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="all">All Priorities</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          {/* Category Filter */}
+          <div className="min-w-32">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="all">All Categories</option>
+              <option value="Development">Development</option>
+              <option value="Design">Design</option>
+              <option value="Testing">Testing</option>
+              <option value="DevOps">DevOps</option>
+              <option value="Documentation">Documentation</option>
+              <option value="Bug Fix">Bug Fix</option>
+              <option value="Database">Database</option>
+            </select>
+          </div>
+          {/* Assignee Filter */}
+          <div className="min-w-32">
+            <select
+              value={assignedToFilter}
+              onChange={(e) => setAssignedToFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="all">All Assignees</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.name}>{emp.name}</option>
+              ))}
+            </select>
+          </div>
+          {/* Sort By */}
+          <div className="min-w-32">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="deadline">Sort by Deadline</option>
+              <option value="priority">Sort by Priority</option>
+              <option value="progress">Sort by Progress</option>
+              <option value="assignedTo">Sort by Assignee</option>
+            </select>
+          </div>
+        </div>
+        {/* Quick Stats */}
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+          <div className="flex flex-wrap gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 dark:text-gray-400">Total:</span>
+              <span className="text-gray-900 dark:text-white font-medium">{filteredTasks.length}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 dark:text-gray-400">Completed:</span>
+              <span className="text-green-600 dark:text-green-400 font-medium">{filteredTasks.filter(t => t.status === 'completed').length}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 dark:text-gray-400">In Progress:</span>
+              <span className="text-blue-600 dark:text-blue-400 font-medium">{filteredTasks.filter(t => t.status === 'in-progress').length}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 dark:text-gray-400">Overdue:</span>
+              <span className="text-red-600 dark:text-red-400 font-medium">{filteredTasks.filter(t => new Date(t.deadline) < new Date() && t.status !== 'completed').length}</span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Content - Task Cards */}
-        <div className="xl:col-span-6">
-          <div className="space-y-6">
-            {/* Task Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {sortedTasks.map((task) => {
-                const isOverdue = new Date(task.deadline) < new Date() && task.status !== 'completed';
-                
-                return (
-                  <div key={task.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                          <TaskIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">#{task.id.toString().padStart(3, '0')}</p>
-                        </div>
-                      </div>
-                      <StatusBadge status={task.status} />
-                    </div>
-                    
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {task.title}
-                    </h3>
+      {/* Main Content */}
+      {/* Task Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {sortedTasks.map((task) => {
+          const isOverdue = new Date(task.deadline) < new Date() && task.status !== 'completed';
+          
+          return (
+            <div key={task.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <TaskIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400">#{task.id.toString().padStart(3, '0')}</p>
+                  </div>
+                </div>
+                <StatusBadge status={task.status} />
+              </div>
+              
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                {task.title}
+              </h3>
                     
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                       {task.description}
@@ -725,10 +718,8 @@ const TaskManagement: React.FC = () => {
                       <div className="flex gap-1">
                         <button
                           onClick={() => {
-                            const selectedEmp = employees.find(emp => emp.name !== task.assignedTo);
-                            if (selectedEmp) {
-                              handleTaskReassignment(task.id, selectedEmp.name, selectedEmp.id);
-                            }
+                            setTaskToAssign(task);
+                            setShowAssignmentModal(true);
                           }}
                           className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                           title="Reassign Task"
@@ -746,6 +737,7 @@ const TaskManagement: React.FC = () => {
                         )}
                       </div>
                       <button
+                        onClick={() => handleEditTask(task)}
                         className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         title="Edit Task"
                       >
@@ -756,74 +748,15 @@ const TaskManagement: React.FC = () => {
                 );
               })}
             </div>
-            
-            {sortedTasks.length === 0 && (
-              <div className="text-center py-12">
-                <TaskIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks found</h3>
-                <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filter criteria.</p>
-              </div>
-            )}
-          </div>
         </div>
-
-        {/* Right Sidebar - Milestones Widget */}
-        <div className="xl:col-span-3">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sticky top-6">
-            <div className="flex items-center gap-2 mb-6">
-              <FlagIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Milestones</h2>
-            </div>
-            
-            <div className="space-y-4">
-              {milestones.map((milestone) => (
-                <div key={milestone.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="flex items-center gap-3 mb-2">
-                    {milestone.completed ? (
-                      <CheckCircleIcon className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <ClockIcon className="w-5 h-5 text-gray-400" />
-                    )}
-                    <h4 className={`font-medium text-sm ${milestone.completed ? 'line-through text-gray-500' : 'text-gray-900 dark:text-white'}`}>
-                      {milestone.name}
-                    </h4>
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{milestone.description}</p>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      {new Date(milestone.targetDate).toLocaleDateString()}
-                    </span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      {milestone.taskIds.length} tasks
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Quick Actions */}
-            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Quick Actions</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    console.log('Button clicked, setting showCreateWidget to true');
-                    setShowCreateWidget(true);
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  <PlusIcon className="w-4 h-4" />
-                  Create New Task (TEST)
-                </button>
-                <button className="w-full flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
-                  <RefreshIcon className="w-4 h-4" />
-                  Refresh Tasks
-                </button>
-              </div>
-            </div>
+        
+        {sortedTasks.length === 0 && (
+          <div className="text-center py-12">
+            <TaskIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks found</h3>
+            <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filter criteria.</p>
           </div>
-        </div>
-      </div>
+        )}
 
       {/* Create Task Widget */}
       {showCreateWidget && (
@@ -1029,7 +962,241 @@ const TaskManagement: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+
+      {/* Assignment Modal */}
+      {showAssignmentModal && taskToAssign && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-600">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Reassign Task</h2>
+                <button
+                  onClick={() => setShowAssignmentModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task: {taskToAssign.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Currently assigned to: {taskToAssign.assignedTo}</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Assign to Employee
+                  </label>
+                  <select
+                    onChange={(e) => {
+                      const selectedEmp = employees.find(emp => emp.name === e.target.value);
+                      if (selectedEmp) {
+                        handleTaskReassignment(taskToAssign.id, selectedEmp.name, selectedEmp.id);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    <option value="">Select employee...</option>
+                    {employees.map(emp => (
+                      <option key={emp.id} value={emp.name}>
+                        {emp.name} - {emp.position} (Workload: {emp.workload}%)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <p>• Workload percentage shows current task load</p>
+                  <p>• Lower workload means more availability</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Task Modal */}
+      {showEditModal && editingTask && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Task</h2>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Form Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
+              <div className="space-y-4">
+                {/* Task Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Task Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={editingTask.title}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, title: e.target.value } : null)}
+                    placeholder="Enter task title..."
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+
+                {/* Task Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editingTask.description}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, description: e.target.value } : null)}
+                    placeholder="Enter task description..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                  />
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={editingTask.category}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, category: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    <option value="Development">Development</option>
+                    <option value="Design">Design</option>
+                    <option value="Testing">Testing</option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="Documentation">Documentation</option>
+                    <option value="Bug Fix">Bug Fix</option>
+                    <option value="Database">Database</option>
+                  </select>
+                </div>
+
+                {/* Priority */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Priority
+                  </label>
+                  <select
+                    value={editingTask.priority}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, priority: e.target.value as 'low' | 'medium' | 'high' | 'urgent' } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+
+                {/* Assignee */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Assignee *
+                  </label>
+                  <select
+                    value={editingTask.assignedTo}
+                    onChange={(e) => {
+                      const selectedEmp = employees.find(emp => emp.name === e.target.value);
+                      setEditingTask(prev => prev ? { 
+                        ...prev, 
+                        assignedTo: e.target.value,
+                        assignedToId: selectedEmp?.id || 0
+                      } : null);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    <option value="">Select assignee...</option>
+                    {employees.map(emp => (
+                      <option key={emp.id} value={emp.name}>
+                        {emp.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Deadline */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Deadline *
+                  </label>
+                  <input
+                    type="date"
+                    value={editingTask.deadline}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, deadline: e.target.value } : null)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+
+                {/* Estimated Hours */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Estimated Hours
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={editingTask.estimatedHours}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, estimatedHours: parseInt(e.target.value) || 8 } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+
+                {/* Progress */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Progress (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editingTask.progress}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, progress: parseInt(e.target.value) || 0 } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions - Fixed at bottom */}
+            <div className="p-6 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 flex-shrink-0">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => editingTask && handleUpdateTask(editingTask)}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <EditIcon className="w-4 h-4" />
+                  Update Task
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -114,7 +114,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onMenuClic
             className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition relative"
           >
             <span className="sr-only">View notifications</span>
-            <BellIcon />
+            <BellIcon className="w-7 h-7" />
             <NotificationBadge className="absolute -top-1 -right-1" />
           </button>
           {isNotificationsOpen && (
@@ -122,6 +122,15 @@ const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onMenuClic
               notifications={notifications}
               setNotifications={setNotifications}
               onClose={() => setIsNotificationsOpen(false)}
+              onViewAll={() => {
+                setIsNotificationsOpen(false);
+                setCurrentView('notifications');
+              }}
+              onNotificationClick={(notification) => {
+                setIsNotificationsOpen(false);
+                setCurrentView('notifications');
+                // You can add additional logic here to scroll to specific notification
+              }}
             />
           )}
         </div>

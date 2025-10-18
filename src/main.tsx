@@ -4,6 +4,7 @@ import './styles.css';
 import MainLayout from '../layout/MainLayout';
 import HODDashboard from '../pages/dashboard';
 import TaskManagement from '../pages/taskManagement';
+import ServiceManagement from '../pages/serviceManagement';
 import NotificationsPage from '../pages/notifications';
 import AnnouncementsPage from '../pages/announcements';
 import LeaveAttendancePage from '../pages/leaveAttendance/LeaveAttendancePanel';
@@ -28,6 +29,8 @@ const AppRoot: React.FC = () => {
         return <HODDashboard />;
       case 'taskManagement':
         return <TaskManagement />;
+      case 'serviceManagement':
+        return <ServiceManagement />;
       case 'notifications':
         return <NotificationsPage />;
       case 'announcements':

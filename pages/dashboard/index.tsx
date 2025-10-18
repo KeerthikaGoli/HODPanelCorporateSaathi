@@ -307,7 +307,7 @@ const HODDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-800 dark:to-purple-800 rounded-2xl p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">HOD Dashboard - IT Department 👨‍💼</h1>
+        <h1 className="text-3xl font-bold mb-2">HOD Dashboard </h1>
         <p className="text-blue-100 dark:text-blue-200">Department overview and performance analytics</p>
       </div>
 
